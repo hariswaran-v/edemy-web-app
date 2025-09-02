@@ -5,12 +5,14 @@ import Loading from "../../components/student/Loading";
 import { assets } from "../../assets/assets";
 import humanizeDuration from "humanize-duration";
 import Footer from "../../components/student/Footer";
+import YouTube from "react-youtube";
 
 const CourseDetails = () => {
   const { id } = useParams();
   const [courseData, setCourseData] = useState(null);
   const [openSections, setOpenSections] = useState({});
   const [isAlreadyEnrolled, setIsAlreadyEnrolled] = useState(false);
+  const [playerData, setPlayerData] = useState(null);
   const {
     allCourses,
     rupees,
@@ -28,7 +30,7 @@ const CourseDetails = () => {
 
   useEffect(() => {
     fetchCourseData();
-  }, [allCourses, id]);
+  }, [allCourses]);
 
   if (!courseData) return <Loading />;
 
@@ -36,7 +38,7 @@ const CourseDetails = () => {
     setOpenSections((prev) => ({ ...prev, [i]: !prev[i] }));
   };
 
-  return (
+  return courseData ? (
     <div className="relative w-full">
       {/* Gradient Background */}
       <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-cyan-100/70 to-white z-0"></div>
@@ -131,7 +133,16 @@ const CourseDetails = () => {
                             <p>{lecture.lectureTitle}</p>
                             <div className="flex gap-2">
                               {lecture.isPreviewFree && (
-                                <p className="text-blue-500 cursor-pointer">
+                                <p
+                                  onClick={() =>
+                                    setPlayerData({
+                                      videoId: lecture.lectureUrl
+                                        .split("/")
+                                        .pop(),
+                                    })
+                                  }
+                                  className="text-blue-500 cursor-pointer"
+                                >
                                   Preview
                                 </p>
                               )}
@@ -171,11 +182,20 @@ const CourseDetails = () => {
 
         {/* Right Column (for future use, e.g., video, enroll button) */}
         <div className="w-[350px] sm:w-[420px] shrink-0 shadow-[0px_4px_15px_2px_rgba(0,0,0,0.1)] rounded overflow-hidden bg-white self-start mx-auto">
-          <img
-            className="w-full h-[220px] object-cover"
-            src={courseData.courseThumbnail}
-            alt=""
-          />
+          {playerData ? (
+            <YouTube
+              videoId={playerData.videoId}
+              opts={{ playerVars: { autoplay: 1 } }}
+              iframeClassName="w-full aspect-video"
+            />
+          ) : (
+            <img
+              className="w-full h-[220px] object-cover"
+              src={courseData.courseThumbnail}
+              alt=""
+            />
+          )}
+
           <div className="pt-5 px-4 pb-6">
             <div className="flex items-center gap-2">
               <img
@@ -239,6 +259,8 @@ const CourseDetails = () => {
       </div>
       <Footer />
     </div>
+  ) : (
+    <Loading />
   );
 };
 
